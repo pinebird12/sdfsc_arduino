@@ -4,7 +4,7 @@
 const int btnPin = 53;
 unsigned long buttonState = 0;
 long heartScalar = 1;
-int minThresh = 30;
+int minThresh = 0;
 int pulseWire = 1;
 bool strandActive[8] = {true, false, false, false, false, false, false, false}; // if a strand is cycling
 long strandLastUpdate[8] = {0, 0, 0, 0, 0, 0, 0, 0}; // Tracks last update to each strand
@@ -107,19 +107,17 @@ void setup() {
   for (int i = 2; i < 34; i++) { // Initilize the pins
     pinMode(i, OUTPUT);
   }
-
+  delay(1000);
 }
 
 void loop() {
-  Serial.println("Start of loop itteration");
+  // Serial.println("Start of loop itteration");
   monitor.update();
   bool fast = true;
   bool mark = false;
-  float childBPM = monitor.getBPM();
-  Serial.print("head Queue");
-  Serial.println(monitor.que.peek());
-  Serial.print("BPM: ");
-  Serial.println(childBPM);
+  // float childBPM = monitor.getBPM();
+  float childBPM = 60.0;
+  // Serial.println(childBPM);
   long strandRealRate[8]; // Updates the adjusted heartrate for the person
   for (int i = 0; i < 8; i++) {
     strandRealRate[i] = strandRates[i] * childBPM * 60;
