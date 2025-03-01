@@ -3,7 +3,7 @@
 
 const int btnPin = 53;
 unsigned long buttonState = 0;
-unsigned long heartScalar = 0.0000001;
+unsigned long heartScalar = 1.0;
 int minThresh = 0;
 int pulseWire = 1;
 bool strandActive[8] = {true, false, false, false, false, false, false, false}; // if a strand is cycling
@@ -61,8 +61,12 @@ void updateStrand(int strand) {
     case 4:
       ::strandActive[5] = true;
     case 2:
-      ::strandActive[4] = true;
-      break;
+      if (strand == 4) {
+        break;
+      } else {
+        ::strandActive[4] = true;
+        break;
+      }
     case 5:
       ::strandActive[6] = true;
       ::strandActive[7] = true;
@@ -131,7 +135,7 @@ void loop() {
   int childBPM = 60;
   long strandRealRate[8]; // Updates the adjusted heartrate for the person
   for (int i = 0; i < 8; i++) {
-    strandRealRate[i] = strandRates[i] * childBPM * 60;
+    strandRealRate[i] = strandRates[i] * childBPM / 60;
   }
   long timeStart = millis();
   long ctime = millis();
@@ -145,7 +149,7 @@ void loop() {
     //   heartScalar = 100.0;
     //   fast = true;
     // }
-    childBPM = monitor.getBPM();
+    // childBPM = monitor.getBPM();
     itterLED(strandRealRate);
     if ((ctime - timeStart > 420) && (not mark)) {
       strandActive[0] = true;
