@@ -156,8 +156,8 @@ void loop() {
       strandActive[0] = true;
       mark = true;
       timeStart = millis();
-  resetAll();
-  mark = false;
+      resetAll();
+      mark = false;
     }
   }
 }
