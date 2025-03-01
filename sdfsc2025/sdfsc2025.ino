@@ -32,18 +32,18 @@ void updateStrand(int strand) {
   int activePin = ::strandLastUpdate[strand] + 1;
   bool pinActive = ::ledState[activePin];
   if (pinActive) { // if active, deactivate
-    digitalWrite(activePin, 255);
+    digitalWrite(activePin, HIGH);
     ::ledState[activePin] = true;
   } else { // if inactive, activate
-    ::digitalWrite(activePin, 0);
+    ::digitalWrite(activePin, LOW);
     ::ledState[activePin] = false;
   }
   if (activePin == ::strandMaxPin[strand]) { // if last pin, end strand cycling
     ::strandActive[strand] = not ::strandActive[strand];
     switch (strand){
     case 3: // Switch clause to activate subsequent strands at termination of previous
-      digitalWrite(16, 255);
-      digitalWrite(17, 255); // If the lower IN Path strand finishes, activate Av Node
+      digitalWrite(16, HIGH);
+      digitalWrite(17, HIGH); // If the lower IN Path strand finishes, activate Av Node
       // but do no mark as active, so the delay will occur
       break;
     case 2:
@@ -64,7 +64,7 @@ void resetAll() {
    * resets all values and deactivates all LEDs
    */
   for (int i = 2; i < 34; i++) {
-    digitalWrite(i, 0);
+    digitalWrite(i, LOW);
   }
   for (int i = 0; i < 8; i++){
     ::strandLastUpdate[i] = 0;
@@ -107,17 +107,14 @@ void setup() {
   for (int i = 2; i < 34; i++) { // Initilize the pins
     pinMode(i, OUTPUT);
   }
-  delay(1000);
 }
 
 void loop() {
-  // Serial.println("Start of loop itteration");
-  monitor.update();
+  // monitor.update();
   bool fast = true;
   bool mark = false;
   // float childBPM = monitor.getBPM();
-  float childBPM = 60.0;
-  // Serial.println(childBPM);
+  int childBPM = 60;
   long strandRealRate[8]; // Updates the adjusted heartrate for the person
   for (int i = 0; i < 8; i++) {
     strandRealRate[i] = strandRates[i] * childBPM * 60;
@@ -126,7 +123,7 @@ void loop() {
   long ctime = millis();
   buttonState = pulseIn(btnPin, LOW, 1000000);
   while (childBPM > minThresh){
-    monitor.update();
+    // monitor.update();
     if ((buttonState > 50) && (fast)){
       heartScalar = 0.005;
       fast = false;
@@ -136,6 +133,7 @@ void loop() {
     }
     childBPM = monitor.getBPM();
     itterLED(strandRealRate);
+    Serial.println("Called itter");
     if ((ctime - timeStart > 420) && (not mark)) {
       strandActive[0] = true;
       mark = true;
