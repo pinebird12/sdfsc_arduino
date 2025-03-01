@@ -9,13 +9,13 @@ public:
   Queue<int> tmp;
   int inQueue = 0;
   int inputWire;
-  int currentBPM = 0;
+  float currentBPM = 0;
   int* windowBuffer;
   float conVal;
 
   HRMonitor(int bufferSize, int input) {
     avgWindow = bufferSize;
-    que = new Queue<int>(bufferSize);
+    que = Queue<float>(bufferSize);
     inputWire = input;
     windowBuffer = new int[bufferSize];
     for (int i = 0; i < bufferSize; i++){
@@ -26,7 +26,7 @@ public:
 
 
   void update() {
-    if (inQueue == windowBuffer) { // If the queue is full, empty it and get a HR
+    if (inQueue == avgWindow) { // If the queue is full, empty it and get a HR
       float last = 0;
       float current = que.pop();
       float next = que.peek();
@@ -51,6 +51,7 @@ public:
           last = tmp.pop();
         }
       }
+      tmp.clear();
       avg = avg / numPushed;
       currentBPM = avg;
       que.clear();
@@ -72,7 +73,6 @@ private:
     for (int i = 0; i < avgWindow; i++) {
       avg = avg + (conVal * windowBuffer[i]);
     }
-    que.push(avg);
     for (int i = 0; i < avgWindow - 1; i++) {
       windowBuffer[i] = windowBuffer[i + 1];
     }

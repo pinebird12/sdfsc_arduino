@@ -115,7 +115,7 @@ void loop() {
   monitor.update();
   bool fast = true;
   bool mark = false;
-  int childBPM = monitor.getBPM();
+  float childBPM = monitor.getBPM();
   Serial.print("head Queue");
   Serial.println(monitor.que.peek());
   Serial.print("BPM: ");
