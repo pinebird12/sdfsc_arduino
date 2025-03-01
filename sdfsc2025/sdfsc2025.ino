@@ -150,10 +150,12 @@ void loop() {
     //   fast = true;
     // }
     // childBPM = monitor.getBPM();
+    ctime=millis();
     itterLED(strandRealRate);
     if ((ctime - timeStart > 420) && (not mark)) {
       strandActive[0] = true;
       mark = true;
+      timeStart = millis();
   resetAll();
   mark = false;
     }
