@@ -40,6 +40,7 @@ void updateStrand(int strand) {
   } else { // if inactive, activate
     ::digitalWrite(activePin, LOW);
     ::ledState[activePin - 2] = false;
+    ::strandLastPin[strand] = ::strandLastPin[strand] + 1;
   }
   if (activePin == ::strandMaxPin[strand]) { // if last pin, end strand cycling
     ::strandActive[strand] = not ::strandActive[strand];
@@ -132,10 +133,10 @@ void loop() {
   bool fast = true;
   bool mark = false;
   // float childBPM = monitor.getBPM();
-  int childBPM = 60;
+  int childBPM = 10;
   long strandRealRate[8]; // Updates the adjusted heartrate for the person
   for (int i = 0; i < 8; i++) {
-    strandRealRate[i] = strandRates[i] * childBPM / 60;
+    strandRealRate[i] = strandRates[i] * 60 / childBPM;
   }
   long timeStart = millis();
   long ctime = millis();
@@ -152,11 +153,11 @@ void loop() {
     // childBPM = monitor.getBPM();
     ctime=millis();
     itterLED(strandRealRate);
-    if ((ctime - timeStart > 420) && (not mark)) {
+    if ((ctime - timeStart > (420 * (60 / childBPM))) && (not mark)) {
       strandActive[0] = true;
       mark = true;
       timeStart = millis();
-      resetAll();
+      // resetAll();
       mark = false;
     }
   }
