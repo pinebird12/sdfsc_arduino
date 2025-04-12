@@ -2,6 +2,7 @@
 #include "HRMonitor.hpp"
 
 const int btnPin = 53;
+bool inverted[8] = {false, false, false, false, false, false, false, false}
 unsigned long buttonState = 0;
 unsigned long heartScalar = 1.0;
 int minThresh = 0;
@@ -9,7 +10,7 @@ int pulseWire = 1;
 bool strandActive[8] = {true, false, false, false, false, false, false, false}; // if a strand is cycling
 long strandLastUpdate[8] = {0, 0, 0, 0, 0, 0, 0, 0}; // Tracks last update to each strand
 const long strandRates[8] = { // Used to generate adjusted rates for HR
-  0, 22.857142857, 22.857142857, 22.857142857, 100.0, 2.222222222, 2.222222222, 5.0
+  0, 21.4285714, 21.4285714, 21.4285714, 120.0, 1.111111111, 6.25, 6.25
 };
 const int strandMinPin[8] = {1, 3, 8, 14, 16, 18, 33, 27};
 int strandLastPin[8] = {1, 3, 8, 14, 16, 18, 33, 27}; // last pin in a strand to be updated
@@ -17,12 +18,23 @@ int strandLastPin[8] = {1, 3, 8, 14, 16, 18, 33, 27}; // last pin in a strand to
 const int strandMaxPin[8] = {3, 8, 14, 16, 18, 27, 41, 33}; // Last pin in strand
 int numStrands = 8; // number of strands in use
 const bool isNode[8] = {true, false, false, false, true, false, false, false}; // if a strand is a node, and should therefore activate all at pins
-bool ledState[40]; // arrack tracking if a pin is enabled
+bool ledState[40]; // array tracking if a pin is enabled
 
-int Threshold = 550;           // Determine which Signal to "count as a beat" and which to ignore
+int Threshold = 550;  // Determine which Signal to "count as a beat" and which to ignore
 
 int window = 10;
 HRMonitor monitor(window, pulseWire);
+
+void changeLED(int strand) {
+  bool isInverted = ::inverted[strand];
+  int activePin = ::strandLastPin[strand] + 1;
+  bool pinActive = ::ledState[activePin - 2];
+
+  if (isInverted) {
+    int minPin = ::strandMinPin[strand];
+
+  }
+}
 
 void updateStrand(int strand) {
   /*
@@ -40,10 +52,11 @@ void updateStrand(int strand) {
   } else { // if inactive, activate
     ::digitalWrite(activePin, LOW);
     ::ledState[activePin - 2] = false;
+    ::strandLastPin[strand] = ::strandLastPin[strand] + 1;
   }
   if (activePin == ::strandMaxPin[strand]) { // if last pin, end strand cycling
-    ::strandActive[strand] = not ::strandActive[strand];
-    ::strandLastPin[strand] = strandMinPin[strand];
+    ::strandActive[strand] = false;
+    ::strandLastPin[strand] = ::strandMinPin[strand];
     switch (strand) {
     case 0:
       ::strandActive[1] = true;
@@ -106,8 +119,8 @@ void itterLED(long strandAdjRates[8]) {
    */
   for (int strand=0; strand < ::numStrands; strand++) {
     long currentTime = millis();
-    long elapsedTime = currentTime - ::strandLastUpdate[strand] * ::heartScalar;
-    if ((elapsedTime >= strandAdjRates[strand] * heartScalar) && (::strandActive[strand])) {
+    long elapsedTime = currentTime - ::strandLastUpdate[strand];
+    if ((elapsedTime >= strandAdjRates[strand]) && (::strandActive[strand])) {
       updateStrand(strand);
       ::strandLastUpdate[strand] = currentTime;
     }
@@ -128,36 +141,22 @@ void setup() {
 }
 
 void loop() {
-  // monitor.update();
   bool fast = true;
   bool mark = false;
-  // float childBPM = monitor.getBPM();
-  int childBPM = 60;
+  float childBPM = 5 * heartScalar;
   long strandRealRate[8]; // Updates the adjusted heartrate for the person
   for (int i = 0; i < 8; i++) {
-    strandRealRate[i] = strandRates[i] * childBPM / 60;
+    strandRealRate[i] = strandRates[i] * 60 / childBPM;
   }
   long timeStart = millis();
   long ctime = millis();
   buttonState = pulseIn(btnPin, LOW, 1000000);
   while (childBPM > minThresh){
-    // monitor.update();
-    // if ((buttonState > 50) && (fast)){
-    //   heartScalar = 100.01;
-    //   fast = false;
-    // } else if ((buttonState > 50) && (not fast)) {
-    //   heartScalar = 100.0;
-    //   fast = true;
-    // }
-    // childBPM = monitor.getBPM();
     ctime=millis();
     itterLED(strandRealRate);
-    if ((ctime - timeStart > 420) && (not mark)) {
+    if ((ctime - timeStart > (420 * (60 / childBPM))) && (not mark)) {
       strandActive[0] = true;
-      mark = true;
       timeStart = millis();
-      resetAll();
-      mark = false;
     }
   }
 }
