@@ -25,43 +25,73 @@ int Threshold = 550;  // Determine which Signal to "count as a beat" and which t
 int window = 10;
 HRMonitor monitor(window, pulseWire);
 
-void changeLED(int strand) {
+bool changeLED(int strand) {
+  /*
+  ** Updates each LED pin, checking if the pin
+  ** is set to be cycled in reverse
+  ** @param strand: the strand that is being cycled
+   */
   bool isInverted = ::inverted[strand];
   int activePin = ::strandLastPin[strand] + 1;
   bool pinActive = ::ledState[activePin - 2];
+  bool lastPin = false;
 
   if (isInverted) {
     int minPin = ::strandMinPin[strand];
-
+    if (!pinActive) {
+      digitalWrite(activePin, HIGH);
+      ::ledState[activePin - 2] = true;
+    } else {
+      digitalWrite(activePin, LOW);
+      ::ledState[activePin - 2] = false;
+    }
+    if (activePin - 1 <= minPin) { // Case where this is the last pin in the strand
+      ::strandActive[strand] = false;
+      ::strandLastPin[strand] = minPin;
+      lastPin = true;
+      ::inverted[strand] = false;
+    } else { // if this is not the last pin in the strand
+      ::strandLastPin[strand] = activePin - 1;
+    }
+  } else { //non inverted strands
+    if (!pinActive) {
+      digitalWrite(activePin, HIGH);
+      ::ledState[activePin - 2] = true;
+    } else {
+      digitalWrite(activePin, LOW);
+      ::ledState[activePin - 2] = false;
+    }
+    ::strandLastPin[strand] = activePin + 1;
+    if (activePin == ::strandMaxPin[strand]) {
+      ::strandActive = false;
+      ::strandLastPin[strand] = ::strandMaxPin[strand];
+      lastPin = true;
+      ::inverted[strand] = true;
+    }
   }
+  return lastPin;
 }
 
 void updateStrand(int strand) {
   /*
-   * Updates strand, either activating or deactivating the next pin
-   * in the strand
+   * strand updating code
+   * Calls changeLED which updates the LED state in the strand,
+   * and then if the strand has finished will cycle the states
+   * of the other strand according to the phisology
+   * NOTE: if you want to change the activation order, modify
+   * the swtich case block
    * @param strand: the strand index number
    */
   int activePin = ::strandLastPin[strand] + 1;
   bool pinActive = ::ledState[activePin - 2];
-
-  if (!pinActive) { // if active, deactivate
-    digitalWrite(activePin, HIGH);
-    ::ledState[activePin - 2] = true;
-    ::strandLastPin[strand] = ::strandLastPin[strand] + 1;
-  } else { // if inactive, activate
-    ::digitalWrite(activePin, LOW);
-    ::ledState[activePin - 2] = false;
-    ::strandLastPin[strand] = ::strandLastPin[strand] + 1;
-  }
-  if (activePin == ::strandMaxPin[strand]) { // if last pin, end strand cycling
-    ::strandActive[strand] = false;
-    ::strandLastPin[strand] = ::strandMinPin[strand];
+  bool lastPin = changeLED(strand);
+  if (lastPin) {
     switch (strand) {
     case 0:
       ::strandActive[1] = true;
       ::strandActive[2] = true;
       ::strandActive[3] = true;
+      break;
     case 3: // Switch clause to activate subsequent strands at termination of previous
       if (strand == 0) {
         break;
