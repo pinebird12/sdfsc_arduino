@@ -2,7 +2,7 @@
 #include "HRMonitor.hpp"
 
 const int btnPin = 53;
-bool inverted[8] = {false, false, false, false, false, false, false, false}
+bool inverted[8] = {false, false, false, false, false, false, false, false};
 unsigned long buttonState = 0;
 unsigned long heartScalar = 1.0;
 int minThresh = 0;
@@ -19,7 +19,7 @@ const int strandMaxPin[8] = {3, 8, 14, 16, 18, 27, 41, 33}; // Last pin in stran
 int numStrands = 8; // number of strands in use
 const bool isNode[8] = {true, false, false, false, true, false, false, false}; // if a strand is a node, and should therefore activate all at pins
 bool ledState[40]; // array tracking if a pin is enabled
-
+HRMonitor tester[2] = {HRMonitor(3, 5), HRMonitor(4, 6)};
 int Threshold = 550;  // Determine which Signal to "count as a beat" and which to ignore
 
 int window = 10;
@@ -63,7 +63,7 @@ bool changeLED(int strand) {
     }
     ::strandLastPin[strand] = activePin + 1;
     if (activePin == ::strandMaxPin[strand]) {
-      ::strandActive = false;
+      ::strandActive[strand] = false;
       ::strandLastPin[strand] = ::strandMaxPin[strand];
       lastPin = true;
       ::inverted[strand] = true;

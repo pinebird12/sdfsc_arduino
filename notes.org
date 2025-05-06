@@ -1,0 +1,14 @@
+* Inbox
+** [2025-04-13 Sun 10:27] how to add sleep
+
+Possibly add extra strand with no asocciated LEDs?
+[[file:~/Code/Git_repos/sdfsc_arduino/sdfsc2025/sdfsc2025.ino::}]]
+** [2025-04-12 Sat 11:54] changeLED Function
+Needs to know if LED strand is reversed or not
+if reversed, will cycle inverted
+1. check if the strand is inverted
+2. if inverted, index backwords
+   - (how to do this?)
+3.
+
+[[file:~/Code/Git_repos/sdfsc_arduino/sdfsc2025/sdfsc2025.ino::void changeLED(int strand) {]]
